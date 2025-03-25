@@ -1,5 +1,6 @@
 using SothbeysKillerApi.Repository;
 using SothbeysKillerApi.Services;
+using SothbeysKillerApi.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,9 +11,11 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddTransient<IAuctionService, DbAuctionService>();
+//Storage in memory (1,2)
+builder.Services.AddSingleton<IAuctionService, AuctionService>();//1
+builder.Services.AddSingleton<ILotService, DefaultLotService>();//2
 
-builder.Services.AddTransient<IAuctionRepository, DbAuctionRepository>();
+//builder.Services.AddTransient<IAuctionRepository, DbAuctionRepository>();
 
 var app = builder.Build();
 

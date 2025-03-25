@@ -28,31 +28,31 @@ public class AuctionController : ControllerBase
     {
         _auctionService = auctionService;
     }
-    
+
     [HttpGet]
     [Route("[action]")]
     public IActionResult Past()
     {
         var auctions = _auctionService.GetPastAuctions();
-        
+
         return Ok(auctions);
     }
-    
+
     [HttpGet]
     [Route("[action]")]
     public IActionResult Active()
     {
         var auctions = _auctionService.GetActiveAuctions();
-        
+
         return Ok(auctions);
     }
-    
+
     [HttpGet]
     [Route("[action]")]
     public IActionResult Future()
     {
         var auctions = _auctionService.GetFutureAuctions();
-        
+
         return Ok(auctions);
     }
 
@@ -62,14 +62,14 @@ public class AuctionController : ControllerBase
         try
         {
             var id = _auctionService.CreateAuction(request);
-            
+
             return Ok(new { Id = id });
         }
         catch (Exception)
         {
             return StatusCode(500, "Oups...");
         }
-        
+
     }
 
     [HttpGet("{id:guid}")]

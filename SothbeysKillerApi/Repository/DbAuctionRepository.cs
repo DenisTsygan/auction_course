@@ -17,7 +17,7 @@ public class DbAuctionRepository : IAuctionRepository, IDisposable
         _dbConnection.Open();
         _logger.LogInformation($"{DateTime.Now}: connection state: {_dbConnection.State}.");
     }
-    
+
     public IEnumerable<Auction> GetPast()
     {
         var query = @"select * from auctions                         
@@ -33,7 +33,7 @@ public class DbAuctionRepository : IAuctionRepository, IDisposable
     {
         using var dbConnection = new NpgsqlConnection("Server=localhost;Port=5432;Database=auction_db;Username=postgres;Password=123456");
 
-        
+
         var query = @"select * from auctions                         
                         where start < current_date and finish > current_date 
                         order by start desc;";
@@ -57,7 +57,7 @@ public class DbAuctionRepository : IAuctionRepository, IDisposable
     public Auction? GetById(Guid id)
     {
         var query = "select * from auctions where id = @Id;";
-        
+
         var auction = _dbConnection.QuerySingleOrDefault<Auction>(query, new { Id = id });
 
         return auction;
@@ -66,7 +66,7 @@ public class DbAuctionRepository : IAuctionRepository, IDisposable
     public Auction Create(Auction entity)
     {
         var command = $@"insert into auctions (id, title, start, finish) values (@Id, @Title, @Start, @Finish) returning *;";
-        
+
         var auction = _dbConnection.QueryFirst<Auction>(command, entity);
 
         return auction;
@@ -92,7 +92,7 @@ public class DbAuctionRepository : IAuctionRepository, IDisposable
     {
         _logger.LogInformation($"{DateTime.Now}: {nameof(DbAuctionRepository)} disposed.");
         _dbConnection.Dispose();
-        
+
         _logger.LogInformation($"{DateTime.Now}: connection state: {_dbConnection.State}.");
     }
 }

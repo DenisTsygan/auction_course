@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SothbeysKillerApi", "SothbeysKillerApi.csproj", "{242C5032-0067-4B3B-71A8-A04C64BD29A3}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{242C5032-0067-4B3B-71A8-A04C64BD29A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{242C5032-0067-4B3B-71A8-A04C64BD29A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{242C5032-0067-4B3B-71A8-A04C64BD29A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{242C5032-0067-4B3B-71A8-A04C64BD29A3}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0DB075E5-439D-4283-9BC9-79EA4C414124}
+	EndGlobalSection
+EndGlobal

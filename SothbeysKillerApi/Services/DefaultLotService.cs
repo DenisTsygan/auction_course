@@ -1,16 +1,16 @@
 using SothbeysKillerApi.Controllers;
+using SothbeysKillerApi.Repository.Interface;
 using SothbeysKillerApi.Services.Interfaces;
 
 namespace SothbeysKillerApi.Services;
 
-public class DefaultLotService(IAuctionService auctionService) : ILotService
+public class DefaultLotService(IAuctionService auctionService, ILotRepository lotRepository) : ILotService
 {
+    private readonly ILotRepository _lotRepository = lotRepository;
     private readonly IAuctionService _auctionService = auctionService;
-    private static List<Lot> _storage = [];
-
     public LotResponce GetById(Guid id)
     {
-        var lot = _storage.FirstOrDefault(l => l.Id == id)
+        var lot = _lotRepository.GetById(id)
             ?? throw new NullReferenceException();
         return MapResponce(lot);
     }
@@ -20,9 +20,9 @@ public class DefaultLotService(IAuctionService auctionService) : ILotService
         var auction = _auctionService.GetAuctionById(auctionId)
             ?? throw new ArgumentException();
 
-        var lots = _storage.Where(l => l.AuctionId == auction.Id).ToList();
+        var lots = _lotRepository.GetByAuctionId(auction.Id).ToList();
         if (lots.Count == 0) throw new NullReferenceException();
-        return lots.Select(MapResponce).OrderByDescending(l => l.Title).ToList();
+        return lots.Select(MapResponce).ToList();
     }
 
     public Guid Create(CreateLotRequest request)
@@ -43,13 +43,13 @@ public class DefaultLotService(IAuctionService auctionService) : ILotService
             StartPrice = request.StartPrice,
             PriceStep = request.PriceStep
         };
-        _storage.Add(newLot);
-        return newLot.Id;
+        var lot = _lotRepository.Create(newLot);
+        return lot.Id;
     }
 
     public void UpdateById(Guid id, UpdateLotRequest request)
     {
-        var lot = _storage.FirstOrDefault(l => l.Id == id)
+        var lot = _lotRepository.GetById(id)
             ?? throw new NullReferenceException();
 
         var auction = _auctionService.GetAuctionById(lot.AuctionId)
@@ -62,11 +62,12 @@ public class DefaultLotService(IAuctionService auctionService) : ILotService
         lot.Description = request.Description;
         lot.StartPrice = request.StartPrice;
         lot.PriceStep = request.PriceStep;
+        _lotRepository.Update(lot);
     }
 
     public void DeleteById(Guid id)
     {
-        var lot = _storage.FirstOrDefault(l => l.Id == id)
+        var lot = _lotRepository.GetById(id)
             ?? throw new NullReferenceException();
 
         var auction = _auctionService.GetAuctionById(lot.AuctionId)
@@ -74,7 +75,7 @@ public class DefaultLotService(IAuctionService auctionService) : ILotService
 
         ValidateAuctionIsFutere(auction);
 
-        _storage.Remove(lot);
+        _lotRepository.Delete(id);
     }
 
     /// <summary>

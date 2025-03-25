@@ -57,5 +57,15 @@ CREATE TABLE auctions(
     Finish timestamp NOT NULL
 );
 
-2)Create table lots
-DEcimal => numeric(18, 2)
+2)Create table lots 
+
+CREATE TABLE lots (
+    id uuid NOT NULL PRIMARY KEY,
+    auction_id uuid NOT NULL,
+    title varchar(255) NOT NULL,
+    description varchar(255),
+    start_price numeric(18,2) NOT NULL ,
+    price_step numeric(18,2) NOT NULL ,
+    CONSTRAINT fk_lot_auction FOREIGN KEY (auction_id) 
+        REFERENCES auctions(id) ON DELETE CASCADE
+);

@@ -1,4 +1,7 @@
+using System.Data;
+using Npgsql;
 using SothbeysKillerApi.Repository;
+using SothbeysKillerApi.Repository.Interface;
 using SothbeysKillerApi.Services;
 using SothbeysKillerApi.Services.Interfaces;
 
@@ -11,11 +14,17 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-//Storage in memory (1,2)
-builder.Services.AddSingleton<IAuctionService, AuctionService>();//1
-builder.Services.AddSingleton<ILotService, DefaultLotService>();//2
+Dapper.DefaultTypeMap.MatchNamesWithUnderscores = true;
+builder.Services.AddScoped<IDbConnection>(sp =>
+    new NpgsqlConnection("Server=localhost;Port=5432;Database=auction_db;Username=postgres;Password=123456")
+);
 
-//builder.Services.AddTransient<IAuctionRepository, DbAuctionRepository>();
+//Storage in db (1,2,3,4)
+builder.Services.AddTransient<IAuctionService, DbAuctionService>();//1 
+builder.Services.AddTransient<IAuctionRepository, DbAuctionRepository>();//2
+builder.Services.AddTransient<ILotService, DefaultLotService>();//3
+builder.Services.AddTransient<ILotRepository, DbLotRepository>();//4 db
+//builder.Services.AddSingleton<ILotRepository, InMemoryLotRepository>();//4 memory
 
 var app = builder.Build();
 

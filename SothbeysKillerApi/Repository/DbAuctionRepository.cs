@@ -10,11 +10,10 @@ public class DbAuctionRepository : IAuctionRepository, IDisposable
     private readonly IDbConnection _dbConnection;
     private readonly ILogger<DbAuctionRepository> _logger;
 
-    public DbAuctionRepository(ILogger<DbAuctionRepository> logger)
+    public DbAuctionRepository(ILogger<DbAuctionRepository> logger, IDbConnection dbConnection)
     {
         _logger = logger;
-        _dbConnection = new NpgsqlConnection("Server=localhost;Port=5432;Database=auction_db;Username=postgres;Password=123456");
-        _dbConnection.Open();
+        _dbConnection = dbConnection;
         _logger.LogInformation($"{DateTime.Now}: connection state: {_dbConnection.State}.");
     }
 

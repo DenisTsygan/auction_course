@@ -1,38 +1,47 @@
+using Microsoft.EntityFrameworkCore;
+using SothbeysKillerApi.Contexts;
 using SothbeysKillerApi.Controllers;
-using SothbeysKillerApi.Repository.Interface;
+using SothbeysKillerApi.Entity;
+using SothbeysKillerApi.Exceptions;
 using SothbeysKillerApi.Services.Interfaces;
 
 namespace SothbeysKillerApi.Services;
 
-public class DefaultLotService(IAuctionService auctionService, ILotRepository lotRepository) : ILotService
+public class DefaultLotService(IAuctionService auctionService, LotDbContext lotDbContext) : ILotService
 {
-    private readonly ILotRepository _lotRepository = lotRepository;
     private readonly IAuctionService _auctionService = auctionService;
+    private readonly LotDbContext _lotDbContext = lotDbContext;
+
     public LotResponce GetById(Guid id)
     {
-        var lot = _lotRepository.GetById(id)
-            ?? throw new NullReferenceException();
+        var lot = _lotDbContext.Lots
+            .AsNoTracking()
+            .FirstOrDefault(l => l.Id == id)
+                ?? throw new EntityExceptionNullreference(nameof(Lot));
         return MapResponce(lot);
     }
 
     public List<LotResponce> GetByAuctionId(Guid auctionId)
     {
         var auction = _auctionService.GetAuctionById(auctionId)
-            ?? throw new ArgumentException();
+            ?? throw new LotExceptionValidation(nameof(auctionId), "auction is not found");
 
-        var lots = _lotRepository.GetByAuctionId(auction.Id).ToList();
-        if (lots.Count == 0) throw new NullReferenceException();
+        var lots = _lotDbContext.Lots
+            .AsNoTracking()
+            .Where(l => l.AuctionId == auctionId)
+            .ToList();
+        if (lots.Count == 0) throw new EntityExceptionNullreference(nameof(List<object>) + " of " + nameof(Lot));
         return lots.Select(MapResponce).ToList();
     }
 
     public Guid Create(CreateLotRequest request)
     {
         var auction = _auctionService.GetAuctionById(request.AuctionId)
-            ?? throw new ArgumentException();
+            ?? throw new LotExceptionValidation(nameof(request.AuctionId), "auction is not found");
 
         ValidateAuctionIsFutere(auction);
 
-        ValidateRequest(request.Title, request.Description, request.StartPrice, request.PriceStep);
+        ValidateLotRequest(request.Title, request.Description, request.StartPrice, request.PriceStep);
 
         var newLot = new Lot
         {
@@ -43,39 +52,45 @@ public class DefaultLotService(IAuctionService auctionService, ILotRepository lo
             StartPrice = request.StartPrice,
             PriceStep = request.PriceStep
         };
-        var lot = _lotRepository.Create(newLot);
-        return lot.Id;
+        _lotDbContext.Lots.Add(newLot);
+        _lotDbContext.SaveChanges();
+
+        return newLot.Id;
     }
 
     public void UpdateById(Guid id, UpdateLotRequest request)
     {
-        var lot = _lotRepository.GetById(id)
-            ?? throw new NullReferenceException();
+        var lot = _lotDbContext.Lots
+            .FirstOrDefault(l => l.Id == id)
+                ?? throw new EntityExceptionNullreference(nameof(Lot));
 
         var auction = _auctionService.GetAuctionById(lot.AuctionId)
-             ?? throw new NullReferenceException();
+             ?? throw new EntityExceptionNullreference(nameof(Auction));
 
         ValidateAuctionIsFutere(auction);
-        ValidateRequest(request.Title, request.Description, request.StartPrice, request.PriceStep);
+        ValidateLotRequest(request.Title, request.Description, request.StartPrice, request.PriceStep);
 
         lot.Title = request.Title;
         lot.Description = request.Description;
         lot.StartPrice = request.StartPrice;
         lot.PriceStep = request.PriceStep;
-        _lotRepository.Update(lot);
+
+        _lotDbContext.SaveChanges();
     }
 
     public void DeleteById(Guid id)
     {
-        var lot = _lotRepository.GetById(id)
-            ?? throw new NullReferenceException();
+        var lot = _lotDbContext.Lots
+             .FirstOrDefault(l => l.Id == id)
+                 ?? throw new EntityExceptionNullreference(nameof(Lot));
 
         var auction = _auctionService.GetAuctionById(lot.AuctionId)
-            ?? throw new NullReferenceException();
+            ?? throw new EntityExceptionNullreference(nameof(Auction));
 
         ValidateAuctionIsFutere(auction);
 
-        _lotRepository.Delete(id);
+        _lotDbContext.Lots.Remove(lot);
+        _lotDbContext.SaveChanges();
     }
 
     /// <summary>
@@ -84,21 +99,22 @@ public class DefaultLotService(IAuctionService auctionService, ILotRepository lo
     /// <param name="title"></param>
     /// <param name="StartPrice"></param>
     /// <param name="PriceStep"></param>
-    /// <exception cref="ArgumentException">if not valid data</exception>
-    private void ValidateRequest(string title, string? description, decimal StartPrice, decimal PriceStep)
+    /// <exception cref="LotExceptionValidation">if not valid data</exception>
+    private void ValidateLotRequest(string title, string? description, decimal StartPrice, decimal PriceStep)
     {
-        if (title.Length < 3 || title.Length > 255) throw new ArgumentException();
-        if (description?.Length > 255) throw new ArgumentException();
-        if (StartPrice <= 0 || PriceStep <= 0) throw new ArgumentException();
+        if (title.Length < 3 || title.Length > 255) throw new LotExceptionValidation(nameof(title), "length should be > 3 and < 255 symbols");
+        if (description?.Length > 255) throw new LotExceptionValidation(nameof(description), "length should < 255 symbols");
+        if (StartPrice <= 0) throw new LotExceptionValidation(nameof(StartPrice), "should be more than 0");
+        if (PriceStep <= 0) throw new LotExceptionValidation(nameof(PriceStep), "should be more than 0");
     }
     /// <summary>
     /// 
     /// </summary>
     /// <param name="auction"></param>
-    /// <exception cref="ArgumentException">if auction is not future</exception>
+    /// <exception cref="LotExceptionValidation">if auction is not future</exception>
     private void ValidateAuctionIsFutere(AuctionResponse auction)
     {
-        if (auction.Start <= DateTime.Now) throw new ArgumentException();
+        if (auction.Start <= DateTime.Now) throw new LotExceptionValidation(nameof(auction), "auction is past");
     }
 
     private LotResponce MapResponce(Lot lot)

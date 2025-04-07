@@ -69,3 +69,9 @@ CREATE TABLE lots (
     CONSTRAINT fk_lot_auction FOREIGN KEY (auction_id) 
         REFERENCES auctions(id) ON DELETE CASCADE
 );
+
+4. EF migrations command
+
+>dotnet ef migrations add NAME - add migrations with NAME
+
+>dotnet ef database update - aply migration

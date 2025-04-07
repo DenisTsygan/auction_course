@@ -1,6 +1,6 @@
 using System.Data;
 using Dapper;
-using SothbeysKillerApi.Controllers;
+using SothbeysKillerApi.Entity;
 using SothbeysKillerApi.Repository.Interface;
 
 namespace SothbeysKillerApi.Repository;

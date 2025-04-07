@@ -1,5 +1,8 @@
 using System.Data;
+using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using SothbeysKillerApi.Contexts;
+using SothbeysKillerApi.ExceptionHandlers;
 using SothbeysKillerApi.Repository;
 using SothbeysKillerApi.Repository.Interface;
 using SothbeysKillerApi.Services;
@@ -7,6 +10,10 @@ using SothbeysKillerApi.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddDbContext<LotDbContext>(options =>
+{
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DB"));
+});
 // Add services to the container.
 
 builder.Services.AddControllers();
@@ -26,6 +33,11 @@ builder.Services.AddTransient<ILotService, DefaultLotService>();//3
 builder.Services.AddTransient<ILotRepository, DbLotRepository>();//4 db
 //builder.Services.AddSingleton<ILotRepository, InMemoryLotRepository>();//4 memory
 
+builder.Services.AddExceptionHandler<EntityExceptionNullreferenceHandler>();
+builder.Services.AddExceptionHandler<LotExceptionValidationHandler>();
+builder.Services.AddExceptionHandler<ServerExceptionsHandler>();
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -38,6 +50,8 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
+
+app.UseExceptionHandler();
 
 app.MapControllers();
 

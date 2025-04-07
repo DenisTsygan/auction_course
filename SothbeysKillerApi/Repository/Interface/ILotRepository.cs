@@ -1,4 +1,4 @@
-using SothbeysKillerApi.Controllers;
+using SothbeysKillerApi.Entity;
 
 namespace SothbeysKillerApi.Repository.Interface;
 
